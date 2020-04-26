@@ -12,7 +12,7 @@ const cloneDeep = require('clone-deep');
 const async = require('neo-async');
 const webpack = require('webpack');
 const WebpackDevMiddleware = require('webpack-dev-middleware');
-const SingleEntryDependency = require('webpack/lib/dependencies/SingleEntryDependency');
+const EntryDependency = require('webpack/lib/dependencies/EntryDependency');
 
 let blocked = [];
 let isBlocked = false;
@@ -143,7 +143,7 @@ function Plugin(
   applyPlugins.forEach(function(compiler) {
     compiler.hooks.thisCompilation.tap(this.plugin, (compilation, params) => {
       compilation.dependencyFactories.set(
-        SingleEntryDependency,
+        EntryDependency,
         params.normalModuleFactory
       );
     });
@@ -286,7 +286,7 @@ Plugin.prototype.make = function(compilation, callback) {
         }!${entry}`;
       }
 
-      const dep = new SingleEntryDependency(entry);
+      const dep = new EntryDependency(entry);
 
       const filename = normalize(
         path.relative(this.basePath, file).replace(/\\/g, '/')
@@ -300,11 +300,13 @@ Plugin.prototype.make = function(compilation, callback) {
 
       compilation.addEntry('', dep, name, (err) => {
         // If the module fails because of an File not found error, remove the test file
+        // const module = dep.module;
+        const module = compilation.moduleGraph.getModule(dep);
         if (
-          dep.module &&
-          dep.module.error &&
-          dep.module.error.error &&
-          dep.module.error.error.code === 'ENOENT'
+          module &&
+          module.error &&
+          module.error.error &&
+          module.error.error.code === 'ENOENT'
         ) {
           this.files = this.files.filter((f) => file !== f);
           invalidate(this.middleware);
