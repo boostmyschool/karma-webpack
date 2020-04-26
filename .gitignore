@@ -9,7 +9,6 @@ logs
 *.log
 npm-debug.log*
 /coverage
-/dist
 /local
 /reports
 /node_modules
